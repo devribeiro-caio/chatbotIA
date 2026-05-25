@@ -1,0 +1,183 @@
+/* Container principal do botão flutuante do chat */
+#formis-chat-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Botão redondo que abre o chat */
+#formis-chat-toggle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #1e40af;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+#formis-chat-toggle:hover {
+  background-color: #1d3a9e;
+}
+
+/* Ícone do botão */
+#formis-chat-toggle img {
+  width: 32px;
+  height: 32px;
+}
+
+/* Janela do chat */
+#formis-chat-box {
+  display: none;
+  flex-direction: column;
+  width: 340px;
+  height: 480px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+/* Cabeçalho do chat */
+#formis-chat-header {
+  background-color: #1e40af;
+  color: white;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+#formis-chat-header img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+#formis-chat-header span {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+#formis-chat-header button {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 8px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+}
+
+#formis-chat-header button:hover {
+  background: rgba(255,255,255,0.28);
+  transform: translateX(-1px);
+}
+
+#formis-chat-header small {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+/* Área de mensagens */
+#formis-chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8fafc;
+}
+
+/* Bolhas de mensagem */
+.msg {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Mensagem do usuário */
+.msg.user {
+  background-color: #1e40af;
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+/* Mensagem do bot */
+.msg.bot {
+  background-color: #e2e8f0;
+  color: #1d3a9e;
+}
+
+/* Container que agrupa os cards */
+.cards-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+/* Card individual clicável */
+.chat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 2px solid #1e40af;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 88px;
+  text-align: center;
+}
+
+.chat-card:hover {
+  background-color: #1e40af;
+  color: white;
+}
+
+.chat-card:hover .card-subtitulo {
+  color: #cbd5e1;
+}
+
+/* Ícone do card */
+.card-icone {
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+}
+
+/* Título do card */
+.card-titulo {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #1e40af;
+}
+
+.chat-card:hover .card-titulo {
+  color: white;
+}
+
+/* Subtítulo do card */
+.card-subtitulo {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
