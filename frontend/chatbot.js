@@ -9,13 +9,15 @@ function criarWidget() {
       <!-- Cabeçalho do chat -->
       <div id="formis-chat-header">
         <div>
-          <span>FormisBot</span>
+          <span>Forminho</span>
           <small>Assistente Virtual Formis</small>
+
         </div>
         <button id="formis-chat-home" title="Ir para a página inicial">← Início</button>
-      </div>
+        <img src="forminho.png" alt="Forminho" id="formis-chat-avatar" />
+        </div>
 
-      <!-- Área onde as mensagens aparecem -->
+        <!-- Área onde as mensagens aparecem -->
       <div id="formis-chat-messages"></div>
 
       <!-- Área de input para o usuário digitar -->
@@ -35,13 +37,69 @@ function criarWidget() {
 // Histórico da conversa
 let historico = [];
 
+// Temporizador de inatividade
+let timerInatividade;
+
+// Inicia ou reinicia o timer de inatividade de 5 minutos
+function resetarTimerInatividade() {
+  clearTimeout(timerInatividade);
+
+  // Só ativa o timer se houver histórico (conversa em andamento)
+  if (historico.length === 0) return;
+
+  timerInatividade = setTimeout(() => {
+    exibirAlertaInatividade();
+  }, 300000); // 300000ms = 5 minutos
+}
+
+// Exibe o alerta de inatividade com cards de sim ou não
+function exibirAlertaInatividade() {
+  const box = document.querySelector('#formis-chat-box');
+
+  // Só exibe se o chat estiver aberto e tiver histórico
+  if (box.style.display !== 'flex' || historico.length === 0) return;
+
+  adicionarMensagem('Você ainda está aí? Deseja continuar o atendimento?', 'bot');
+
+  adicionarCards([
+    {
+      icone: '✅',
+      titulo: 'Sim',
+      subtitulo: 'Continuar atendimento'
+    },
+    {
+      icone: '❌',
+      titulo: 'Não',
+      subtitulo: 'Encerrar conversa'
+    }
+  ]);
+}
+
+// Exibe a tela de boas vindas com os cards de escolha de atendimento
+function exibirBoasVindas() {
+  adicionarMensagem('Olá! Sou o Forminho, assistente virtual da Formis. Como você prefere ser atendido?', 'bot');
+  adicionarCards([
+    {
+      icone: '🤖',
+      titulo: 'Atendimento com IA',
+      subtitulo: 'Respondido pelo Forminho, nosso assistente virtual'
+    },
+    {
+      icone: '👨‍💼',
+      titulo: 'Falar com Especialista',
+      subtitulo: 'Atendimento humano via WhatsApp'
+    }
+  ]);
+}
+
 // Restaura o chat para a tela inicial do bot
 function resetarParaInicio() {
+  clearTimeout(timerInatividade);
   const container = document.querySelector('#formis-chat-messages');
   if (!container) return;
   container.innerHTML = '';
   historico = [];
-  adicionarMensagem('Olá! Sou o FormisBot, estou aqui para te ajudar! Como posso te ajudar hoje?', 'bot');
+  exibirBoasVindas();
 }
 
 // Adiciona uma mensagem de texto na tela do chat
@@ -59,7 +117,6 @@ function adicionarMensagem(texto, tipo) {
 function adicionarCards(cards) {
   const container = document.querySelector('#formis-chat-messages');
 
-  // Cria o container dos cards
   const cardsWrapper = document.createElement('div');
   cardsWrapper.className = 'cards-wrapper';
 
@@ -72,13 +129,33 @@ function adicionarCards(cards) {
       <span class="card-subtitulo">${card.subtitulo}</span>
     `;
 
-    // Ao clicar no card, envia o título como mensagem do usuário
     cardEl.addEventListener('click', () => {
-      // Remove os cards após o clique para não poluir o chat
       cardsWrapper.remove();
 
-      // Simula o usuário digitando e enviando o nome do card
-      enviarMensagemTexto(`Me fale mais sobre ${card.titulo}`);
+      // Falar com Especialista — abre WhatsApp
+      if (card.titulo === 'Falar com Especialista') {
+        adicionarMensagem('Ótimo! Vou te redirecionar para um especialista Formis. 😊', 'bot');
+        setTimeout(() => {
+          window.open('https://wa.me/5511945092300?text=Olá!%20Gostaria%20de%20falar%20com%20um%20especialista%20Formis.', '_blank');
+        }, 1000);
+
+      // Inatividade: Não — encerra e reseta
+      } else if (card.titulo === 'Não') {
+        clearTimeout(timerInatividade);
+        adicionarMensagem('Atendimento encerrado. Obrigado por entrar em contato com a Formis! 😊', 'bot');
+        setTimeout(() => {
+          resetarParaInicio();
+        }, 2000);
+
+      // Inatividade: Sim — continua e reinicia timer
+      } else if (card.titulo === 'Sim') {
+        adicionarMensagem('Ótimo! Como posso te ajudar? 😊', 'bot');
+        resetarTimerInatividade();
+
+      // Qualquer outro card — envia mensagem normalmente
+      } else {
+        enviarMensagemTexto(`Me fale mais sobre ${card.titulo}`);
+      }
     });
 
     cardsWrapper.appendChild(cardEl);
@@ -88,11 +165,37 @@ function adicionarCards(cards) {
   container.scrollTop = container.scrollHeight;
 }
 
+// Tenta extrair JSON válido quando o modelo retorna texto extra junto com o objeto
+function extrairJSON(texto) {
+  if (typeof texto !== 'string') return null;
+  const limpo = texto.replace(/```json|```/g, '').trim();
+  try {
+    return JSON.parse(limpo);
+  } catch {
+    const match = limpo.match(/(\{[\s\S]*\})|(\[[\s\S]*\])/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch {}
+    }
+    const trecho = limpo.match(/"texto"\s*:\s*"[\s\S]*"\s*(,\s*"cards"\s*:\s*\[[\s\S]*\])?/);
+    if (trecho) {
+      try {
+        return JSON.parse(`{${trecho[0]}}`);
+      } catch {}
+    }
+  }
+  return null;
+}
+
 // Função que processa e envia uma mensagem de texto para o backend
 async function enviarMensagemTexto(texto) {
+  // Reinicia o timer de inatividade a cada mensagem enviada
+  resetarTimerInatividade();
+
   adicionarMensagem(texto, 'user');
   historico.push({ role: 'user', content: texto });
-  const digitando = adicionarMensagem('FormisBot está digitando...', 'digitando');
+  const digitando = adicionarMensagem('Forminho está digitando...', 'digitando');
 
   try {
     const resposta = await fetch('http://localhost:3002/api/chat', {
@@ -109,42 +212,15 @@ async function enviarMensagemTexto(texto) {
     const dados = await resposta.json();
     digitando.remove();
 
-    // Pega o objeto resposta ou o próprio body quando já estiver no formato esperado
     const resultado = dados.resposta || dados;
 
-    // Tenta extrair JSON válido quando o modelo retorna texto extra junto com o objeto
-    function extrairJSON(texto) {
-      if (typeof texto !== 'string') return null;
-      const limpo = texto.replace(/```json|```/g, '').trim();
-      try {
-        return JSON.parse(limpo);
-      } catch {
-        const match = limpo.match(/(\{[\s\S]*\})|(\[[\s\S]*\])/);
-        if (match) {
-          try {
-            return JSON.parse(match[0]);
-          } catch {}
-        }
-        const trecho = limpo.match(/"texto"\s*:\s*"[\s\S]*"\s*(,\s*"cards"\s*:\s*\[[\s\S]*\])?/);
-        if (trecho) {
-          try {
-            return JSON.parse(`{${trecho[0]}}`);
-          } catch {}
-        }
-      }
-      return null;
-    }
-
-    // Extrai o texto e os cards corretamente
     let textoBot = '';
     let cards = [];
     let source = resultado;
 
     if (typeof resultado === 'string') {
       const parsed = extrairJSON(resultado);
-      if (parsed) {
-        source = parsed;
-      }
+      if (parsed) source = parsed;
     }
 
     if (typeof source === 'object' && source !== null) {
@@ -161,8 +237,6 @@ async function enviarMensagemTexto(texto) {
       } else if ('icone' in source && 'titulo' in source) {
         cards = [source];
         textoBot = 'Veja o produto abaixo:';
-      } else {
-        textoBot = '';
       }
     } else if (typeof source === 'string') {
       textoBot = source;
@@ -213,12 +287,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const aberto = box.style.display === 'flex';
     box.style.display = aberto ? 'none' : 'flex';
 
-    // Mensagem de boas vindas na primeira abertura
+    // Exibe boas vindas na primeira abertura
     if (!aberto && historico.length === 0) {
-      adicionarMensagem('Olá! Sou o FormisBot, estou aqui para te ajudar! Como posso te ajudar hoje?', 'bot');
+      exibirBoasVindas();
     }
   });
 
+  // Botão início — reseta o chat para a tela inicial
   document.querySelector('#formis-chat-home').addEventListener('click', () => {
     resetarParaInicio();
   });
