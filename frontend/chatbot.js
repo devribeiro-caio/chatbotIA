@@ -11,12 +11,11 @@ function criarWidget() {
         <div>
           <span>Forminho</span>
           <small>Assistente Virtual Formis</small>
-
         </div>
         <button id="formis-chat-home" title="Ir para a página inicial">← Início</button>
-        </div>
+      </div>
 
-        <!-- Área onde as mensagens aparecem -->
+      <!-- Área onde as mensagens aparecem -->
       <div id="formis-chat-messages"></div>
 
       <!-- Área de input para o usuário digitar -->
@@ -30,7 +29,7 @@ function criarWidget() {
 
     <!-- Botão flutuante que abre/fecha o chat -->
     <button id="formis-chat-toggle" aria-label="Abrir chat">
-      <img src="src/forminho.png.png" alt="Forminho" />
+      <img src="src/rostoforminho.png" alt="Forminho" />
     </button>
   `;
   document.body.appendChild(widget);
@@ -112,43 +111,56 @@ function exibirCardsContinuidade() {
   ]);
 }
 
-// Exibe componente de avaliação com até 5 estrelas
+// Exibe avaliação por emojis ao encerrar a conversa
 function exibirAvaliacaoAtendimento() {
   const container = document.querySelector('#formis-chat-messages');
   if (!container) return;
 
-  const estrelasWrapper = document.createElement('div');
-  estrelasWrapper.className = 'avaliacao-wrapper';
-  estrelasWrapper.setAttribute('role', 'group');
-  estrelasWrapper.setAttribute('aria-label', 'Avaliação do atendimento');
+  // Opções de avaliação com emoji, label e mensagem de resposta
+  const opcoes = [
+    { emoji: '😞', label: 'Ruim',     mensagem: 'Lamentamos não ter atendido suas expectativas. Vamos melhorar! 💙' },
+    { emoji: '😐', label: 'Regular',  mensagem: 'Obrigado pelo feedback! Estamos sempre melhorando. 💙' },
+    { emoji: '😊', label: 'Bom',      mensagem: 'Ficamos felizes em ajudar! Obrigado. 💙' },
+    { emoji: '😄', label: 'Ótimo',    mensagem: 'Que ótimo! Obrigado pela avaliação. 💙' }
+  ];
 
-  for (let i = 1; i <= 5; i++) {
-    const estrelaBtn = document.createElement('button');
-    estrelaBtn.type = 'button';
-    estrelaBtn.className = 'avaliacao-estrela';
-    estrelaBtn.textContent = '★';
-    estrelaBtn.title = `${i} estrela${i > 1 ? 's' : ''}`;
-    estrelaBtn.setAttribute('aria-label', `${i} estrela${i > 1 ? 's' : ''}`);
+  const avaliacaoWrapper = document.createElement('div');
+  avaliacaoWrapper.className = 'avaliacao-wrapper';
 
-    estrelaBtn.addEventListener('click', () => {
-      estrelasWrapper.remove();
-      adicionarMensagem(`Obrigado pela avaliação de ${i} estrela${i > 1 ? 's' : ''}! 💙`, 'bot');
+  opcoes.forEach(opcao => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'avaliacao-btn';
+    btn.innerHTML = `
+      <span class="avaliacao-emoji">${opcao.emoji}</span>
+      <span class="avaliacao-label">${opcao.label}</span>
+    `;
+    btn.title = opcao.label;
+
+    btn.addEventListener('click', () => {
+      // Remove a avaliação após escolha
+      avaliacaoWrapper.remove();
+
+      // Exibe mensagem de agradecimento
+      adicionarMensagem(opcao.mensagem, 'bot');
+
+      // Reseta o chat após 2 segundos
       setTimeout(() => {
         resetarParaInicio();
-      }, 1500);
+      }, 2000);
     });
 
-    estrelasWrapper.appendChild(estrelaBtn);
-  }
+    avaliacaoWrapper.appendChild(btn);
+  });
 
-  container.appendChild(estrelasWrapper);
+  container.appendChild(avaliacaoWrapper);
   container.scrollTop = container.scrollHeight;
 }
 
 // Inicia encerramento da conversa pedindo avaliação
 function encerrarComAvaliacao() {
   clearTimeout(timerInatividade);
-  adicionarMensagem('Antes de encerrar, como você avalia o atendimento? (1 a 5 estrelas)', 'bot');
+  adicionarMensagem('Antes de encerrar, como você avalia o atendimento?', 'bot');
   exibirAvaliacaoAtendimento();
 }
 
@@ -211,7 +223,7 @@ function adicionarCards(cards) {
           window.open('https://wa.me/5511945092300?text=Olá!%20Gostaria%20de%20falar%20com%20um%20especialista%20Formis.', '_blank');
         }, 1000);
 
-      // Inatividade: Não — encerra e reseta
+      // Inatividade: Não — pede avaliação antes de encerrar
       } else if (card.titulo === 'Não') {
         encerrarComAvaliacao();
 

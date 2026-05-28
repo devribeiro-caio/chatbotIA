@@ -9,10 +9,10 @@
 
 /* Botão redondo que abre o chat */
 #formis-chat-toggle {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: #fff;
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -219,7 +219,7 @@
 #formis-chat-send {
   border: none;
   background: #1e40af;
-  color: #fff;
+  color: #ffffff;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -253,3 +253,43 @@
   color: #d97706;
 }
 
+/* Container da avaliação por emojis */
+.avaliacao-wrapper {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+/* Botão individual de avaliação */
+.avaliacao-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 4px;
+}
+
+.avaliacao-btn:hover {
+  border-color: #1e40af;
+  background: #eff6ff;
+  transform: scale(1.1);
+}
+
+/* Emoji grande */
+.avaliacao-emoji {
+  font-size: 1.8rem;
+}
+
+/* Label abaixo do emoji */
+.avaliacao-label {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+}
