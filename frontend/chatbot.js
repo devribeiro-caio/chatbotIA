@@ -14,7 +14,6 @@ function criarWidget() {
 
         </div>
         <button id="formis-chat-home" title="Ir para a página inicial">← Início</button>
-        <img src="forminho.png" alt="Forminho" id="formis-chat-avatar" />
         </div>
 
         <!-- Área onde as mensagens aparecem -->
@@ -22,6 +21,7 @@ function criarWidget() {
 
       <!-- Área de input para o usuário digitar -->
       <div id="formis-chat-input-area">
+        <img src="src/forminho.png.png" alt="Forminho" id="formis-chat-input-image" />
         <input id="formis-chat-input" type="text" placeholder="Digite sua mensagem..." />
         <button id="formis-chat-send">➤</button>
       </div>
@@ -29,7 +29,9 @@ function criarWidget() {
     </div>
 
     <!-- Botão flutuante que abre/fecha o chat -->
-    <button id="formis-chat-toggle">💬</button>
+    <button id="formis-chat-toggle" aria-label="Abrir chat">
+      <img src="src/forminho.png.png" alt="Forminho" />
+    </button>
   `;
   document.body.appendChild(widget);
 }
@@ -92,6 +94,64 @@ function exibirBoasVindas() {
   ]);
 }
 
+// Exibe cards para continuar ou encerrar após cada resposta do bot
+function exibirCardsContinuidade() {
+  adicionarCards([
+    {
+      icone: '✅',
+      titulo: 'Sim',
+      subtitulo: 'Quero continuar',
+      acao: 'continuar_conversa'
+    },
+    {
+      icone: '❌',
+      titulo: 'Não',
+      subtitulo: 'Voltar ao início',
+      acao: 'voltar_inicio'
+    }
+  ]);
+}
+
+// Exibe componente de avaliação com até 5 estrelas
+function exibirAvaliacaoAtendimento() {
+  const container = document.querySelector('#formis-chat-messages');
+  if (!container) return;
+
+  const estrelasWrapper = document.createElement('div');
+  estrelasWrapper.className = 'avaliacao-wrapper';
+  estrelasWrapper.setAttribute('role', 'group');
+  estrelasWrapper.setAttribute('aria-label', 'Avaliação do atendimento');
+
+  for (let i = 1; i <= 5; i++) {
+    const estrelaBtn = document.createElement('button');
+    estrelaBtn.type = 'button';
+    estrelaBtn.className = 'avaliacao-estrela';
+    estrelaBtn.textContent = '★';
+    estrelaBtn.title = `${i} estrela${i > 1 ? 's' : ''}`;
+    estrelaBtn.setAttribute('aria-label', `${i} estrela${i > 1 ? 's' : ''}`);
+
+    estrelaBtn.addEventListener('click', () => {
+      estrelasWrapper.remove();
+      adicionarMensagem(`Obrigado pela avaliação de ${i} estrela${i > 1 ? 's' : ''}! 💙`, 'bot');
+      setTimeout(() => {
+        resetarParaInicio();
+      }, 1500);
+    });
+
+    estrelasWrapper.appendChild(estrelaBtn);
+  }
+
+  container.appendChild(estrelasWrapper);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Inicia encerramento da conversa pedindo avaliação
+function encerrarComAvaliacao() {
+  clearTimeout(timerInatividade);
+  adicionarMensagem('Antes de encerrar, como você avalia o atendimento? (1 a 5 estrelas)', 'bot');
+  exibirAvaliacaoAtendimento();
+}
+
 // Restaura o chat para a tela inicial do bot
 function resetarParaInicio() {
   clearTimeout(timerInatividade);
@@ -132,6 +192,18 @@ function adicionarCards(cards) {
     cardEl.addEventListener('click', () => {
       cardsWrapper.remove();
 
+      // Fluxo de continuidade da conversa
+      if (card.acao === 'continuar_conversa') {
+        adicionarMensagem('Perfeito! Me conta como posso te ajudar.', 'bot');
+        resetarTimerInatividade();
+        return;
+      }
+
+      if (card.acao === 'voltar_inicio') {
+        encerrarComAvaliacao();
+        return;
+      }
+
       // Falar com Especialista — abre WhatsApp
       if (card.titulo === 'Falar com Especialista') {
         adicionarMensagem('Ótimo! Vou te redirecionar para um especialista Formis. 😊', 'bot');
@@ -141,11 +213,7 @@ function adicionarCards(cards) {
 
       // Inatividade: Não — encerra e reseta
       } else if (card.titulo === 'Não') {
-        clearTimeout(timerInatividade);
-        adicionarMensagem('Atendimento encerrado. Obrigado por entrar em contato com a Formis! 😊', 'bot');
-        setTimeout(() => {
-          resetarParaInicio();
-        }, 2000);
+        encerrarComAvaliacao();
 
       // Inatividade: Sim — continua e reinicia timer
       } else if (card.titulo === 'Sim') {
@@ -258,6 +326,9 @@ async function enviarMensagemTexto(texto) {
     if (cards.length > 0) {
       adicionarCards(cards);
     }
+
+    // Pergunta se deseja continuar após a resposta
+    exibirCardsContinuidade();
 
     // Salva no histórico só o texto limpo
     historico.push({ role: 'assistant', content: textoBot });
