@@ -146,6 +146,7 @@ async function enviarMensagem(historico) {
 
   // Tenta parsear o JSON retornado pela IA
   try {
+    
     // Remove possíveis marcações de código caso o modelo as inclua
     const limpo = texto.replace(/```json|```/g, '').trim();
     const match = limpo.match(/\{[\s\S]*\}/);

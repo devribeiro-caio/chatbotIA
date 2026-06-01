@@ -13,6 +13,14 @@
   <p>Clique no botão 💬 no canto inferior direito para testar o chat.</p>
 
   <!-- Importa o JS do chatbot -->
+  <script>
+    // Define a URL do backend com base no hostname atual da página.
+    // Isso permite usar tanto localhost quanto o IP de rede da máquina.
+    const host = window.location.hostname;
+    window.FORMIS_API_URL = host === 'localhost'
+      ? 'http://localhost:3002'
+      : `http://${host}:3002`;
+  </script>
   <script src="chatbot.js"></script>
 </body>
 </html>

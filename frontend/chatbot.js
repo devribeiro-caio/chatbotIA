@@ -38,6 +38,9 @@ function criarWidget() {
 // Histórico da conversa
 let historico = [];
 
+// ID da conversa no MongoDB
+let conversaId = null;
+
 // Temporizador de inatividade
 let timerInatividade;
 
@@ -137,9 +140,25 @@ function exibirAvaliacaoAtendimento() {
     `;
     btn.title = opcao.label;
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       // Remove a avaliação após escolha
       avaliacaoWrapper.remove();
+
+      // Tenta salvar a avaliação no servidor
+      try {
+        const apiUrl = getApiUrl().replace('/api/chat', '/api/chat/avaliar');
+        await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emoji: opcao.emoji,
+            label: opcao.label,
+            conversaId: conversaId
+          })
+        });
+      } catch (error) {
+        console.error('Erro ao salvar avaliação:', error);
+      }
 
       // Exibe mensagem de agradecimento
       adicionarMensagem(opcao.mensagem, 'bot');
@@ -171,6 +190,7 @@ function resetarParaInicio() {
   if (!container) return;
   container.innerHTML = '';
   historico = [];
+  conversaId = null;
   exibirBoasVindas();
 }
 
@@ -268,6 +288,22 @@ function extrairJSON(texto) {
   return null;
 }
 
+// Retorna a URL da API (baseado no ambiente - desenvolvimento ou produção)
+function getApiUrl() {
+  const configurado = window.FORMIS_API_URL || window.__FORMIS_API_URL__;
+
+  if (typeof configurado === 'string' && configurado.trim()) {
+    const baseUrl = configurado.trim().replace(/\/$/, '');
+    return baseUrl.endsWith('/api/chat')
+      ? baseUrl
+      : `${baseUrl}/api/chat`;
+  }
+
+  return window.location.protocol === 'file:'
+    ? 'http://localhost:3002/api/chat'
+    : '/api/chat';
+}
+
 // Função que processa e envia uma mensagem de texto para o backend
 async function enviarMensagemTexto(texto) {
   // Reinicia o timer de inatividade a cada mensagem enviada
@@ -278,11 +314,52 @@ async function enviarMensagemTexto(texto) {
   const digitando = adicionarMensagem('Forminho está digitando...', 'digitando');
 
   try {
-    const resposta = await fetch('http://localhost:3002/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ historico })
-    });
+    // Tenta a URL principal
+    const primaryUrl = getApiUrl();
+    const payload = { 
+      historico,
+      conversaId 
+    };
+
+    let resposta;
+    try {
+      resposta = await fetch(primaryUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      // Se houve erro de rede, tenta fallback na porta 3002
+      const host = window.location.hostname;
+      const fallbackUrl = `http://${host}:3002/api/chat`;
+      if (!primaryUrl.includes(':3002')) {
+        try {
+          resposta = await fetch(fallbackUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (err2) {
+          throw err2;
+        }
+      } else {
+        throw err;
+      }
+    }
+
+    // Se retornou uma resposta inválida (404 etc), tenta fallback também
+    if (!resposta.ok && (resposta.status === 404 || resposta.status === 0)) {
+      const host = window.location.hostname;
+      const fallbackUrl = `http://${host}:3002/api/chat`;
+      if (!primaryUrl.includes(':3002')) {
+        const tentativa = await fetch(fallbackUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        resposta = tentativa;
+      }
+    }
 
     if (!resposta.ok) {
       const mensagemErro = await resposta.text();
@@ -291,6 +368,11 @@ async function enviarMensagemTexto(texto) {
 
     const dados = await resposta.json();
     digitando.remove();
+
+    // Salva o conversaId retornado pelo servidor
+    if (dados.conversaId) {
+      conversaId = dados.conversaId;
+    }
 
     const resultado = dados.resposta || dados;
 
@@ -347,6 +429,7 @@ async function enviarMensagemTexto(texto) {
 
   } catch (error) {
     digitando.remove();
+    console.error('Erro na chamada da API:', error);
     adicionarMensagem('Erro ao conectar. Tente novamente.', 'bot');
   }
 }

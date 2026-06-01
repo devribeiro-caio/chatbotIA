@@ -1,19 +1,23 @@
 {
   "name": "chatbot-formis",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Chatbot web da Formis com backend Express e integração Groq.",
+  "main": "backend/server.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node backend/server.js",
+    "dev": "node scripts/dev.js",
+    "test": "node --test"
   },
   "keywords": [],
-  "author": "",
+  "author": "Caio Ribeiro",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "groq-sdk": "^1.2.0"
+    "groq-sdk": "^1.2.0",
+    "mongoose": "^9.6.3"
   }
 }

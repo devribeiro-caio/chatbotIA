@@ -40,14 +40,29 @@ O projeto inclui um frontend em HTML/CSS/JavaScript e um backend em Node.js/Expr
 
 ## Como rodar
 
-1. Inicie o backend:
-   ```bash
-   npm start
-   ```
+### 1. Backend
 
-2. Abra o arquivo `frontend/index.html` no navegador ou sirva a pasta `frontend/` com um servidor estático.
+Na raiz do projeto, execute:
 
-3. No chat, use o botão bolha para abrir o assistente e começar a conversar.
+```bash
+npm start
+```
+
+Isso inicia o servidor em `http://localhost:3002`.
+
+### 2. Frontend
+
+A melhor forma é usar o Live Server no VS Code:
+
+1. Abra a pasta `frontend/`.
+2. Clique com o botão direito em `frontend/index.html`.
+3. Escolha `Open with Live Server`.
+
+O frontend vai abrir em uma URL como `http://127.0.0.1:5500`.
+
+### 3. Testar
+
+Depois que o backend e o frontend estiverem rodando, abra o chat e comece a conversar.
 
 ## Exemplos de perguntas
 
