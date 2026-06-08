@@ -53,7 +53,7 @@ function resetarTimerInatividade() {
 
   timerInatividade = setTimeout(() => {
     exibirAlertaInatividade();
-  }, 300000); // 300000ms = 5 minutos
+  }, 200000); // 200000ms = 4 minutos
 }
 
 // Exibe o alerta de inatividade com cards de sim ou não

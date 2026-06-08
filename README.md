@@ -1,6 +1,6 @@
 # FormisBot
 
-Chatbot web simples para a Formis Instrumentos de Medição.
+Chatbot web para a Formis Instrumentos de Medição.
 
 O projeto inclui um frontend em HTML/CSS/JavaScript e um backend em Node.js/Express que se comunica com a API da Groq para gerar respostas de chat.
 
